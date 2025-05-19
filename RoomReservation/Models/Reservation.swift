@@ -16,12 +16,12 @@ enum ReservationStatus: String, Codable, CaseIterable {
     case rejected = "rejected"
 }
 // Your Reservation struct
-struct Reservation: Codable, Identifiable {
+struct Reservation: Codable, Identifiable, Hashable {
     var id: String
-    var startBookingDate: Date     // just the date part
-    var endBookingDate: Date       // just the date part
-    var bookingTimeStart: Date     // just the time part
-    var bookingTimeEnd: Date       // just the time part
+    var startBookingDate: Date
+    var endBookingDate: Date
+    var bookingTimeStart: Date
+    var bookingTimeEnd: Date
     var isRoomBeingUsed: RoomStatus
     var bookingStatus: ReservationStatus?
     var numberOfParticipants: Int

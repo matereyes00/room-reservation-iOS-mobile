@@ -40,7 +40,7 @@ struct ManageRoomsView: View {
                     } else {
                         if filteredRooms.isEmpty {
                             VStack {
-                                Image(systemName: "building.2.crop.circle.badge.exclamationmark")
+                                Image(systemName: "exclamationmark.circle")
                                     .resizable()
                                     .frame(width: 80, height: 80)
                                     .foregroundColor(.gray)

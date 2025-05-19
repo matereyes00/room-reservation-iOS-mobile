@@ -28,7 +28,6 @@ struct ManageReservationsView: View {
                 isShowingAddReservation = true
             },
             content: { filteredReservations in
-                // Here you receive filtered rooms to display.
                 VStack {
                     if isLoading {
                         ProgressView("Loading reservations...")

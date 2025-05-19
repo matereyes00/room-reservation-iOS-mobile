@@ -10,7 +10,7 @@ enum RoomStatus: String, Codable, CaseIterable {
     case inactive
 }
 
-struct Room: Codable, Identifiable {
+struct Room: Identifiable, Codable, Hashable  {
     let id: String
     let roomName: String
     let roomCapacity: Int

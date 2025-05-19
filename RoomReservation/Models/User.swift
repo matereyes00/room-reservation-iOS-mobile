@@ -5,24 +5,28 @@
 //  Created by Martina Reyes on 5/19/25.
 //
 
-enum Role: String, Codable {
+enum Role: String, Codable, Hashable {
     case superadmin = "superadmin"
     case admin = "admin"
     case client = "client"
 }
 
-struct User: Codable, Identifiable {
+struct User: Identifiable, Codable, Hashable {
     let id: String
     let name: String
     let email: String
     let roles: Role
-    let createdAt: String // or Date if you decode with date formatter
-    let updatedAt: String // or Date
+    let createdAt: String
+    let updatedAt: String
     let cancelledBookings: Int
     let bookings: [Reservation]?
     let notifications: [Notification]?
 
-    enum CodingKeys: String, CodingKey {
-        case id, name, email, roles, createdAt, updatedAt, cancelledBookings, bookings, notifications
+    static func == (lhs: User, rhs: User) -> Bool {
+        return lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

@@ -73,11 +73,15 @@ struct InventoryView: View {
         case "Reservations":
             ManageReservationsView(
                 isLoggedIn: $isLoggedIn,
-                accessToken: accessToken,  // <- THIS should be the token, not the username!
+                accessToken: accessToken, 
                 onLogout: onLogout
         )
         case "My Reservations":
-            Text("My Reservations View")
+            ManageMyReservationsView(
+                isLoggedIn: $isLoggedIn,
+                accessToken: accessToken,
+                onLogout: onLogout
+        )
         case "Users":
             ManageUsersView(
                 isLoggedIn: $isLoggedIn,

@@ -18,7 +18,7 @@ struct MainTabView: View {
                 RoomListView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
             }
             .tabItem {
-                Label("Rooms", systemImage: "building.2")
+                Label("Home", systemImage: "building.2")
             }
             
             NavigationStack {

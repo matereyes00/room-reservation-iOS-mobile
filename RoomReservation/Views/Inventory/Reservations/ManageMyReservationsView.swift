@@ -1,5 +1,5 @@
 //
-//  ManageRoomsView.swift
+//  ManageMyReservationsView.swift
 //  RoomReservation
 //
 //  Created by Martina Reyes on 5/19/25.
@@ -7,37 +7,40 @@
 
 import SwiftUI
 
-struct ManageUsersView: View {
+struct ManageMyReservationsView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
     
-    @State private var users: [User] = []
+    @State private var reservations: [Reservation] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     
     @State private var searchText = ""
-    @State private var isShowingAddUser = false
+    @State private var isShowingAddReservation = false
+    
+    @State private var selectedReservation: Reservation? = nil
+    @State private var isShowingEditReservation = false
 
 
     var body: some View {
         RootManageView(
-            title: "Manage Users",
+            title: "Manage My Reservations",
             searchText: $searchText,
             onAdd: {
-                isShowingAddUser = true
+                isShowingAddReservation = true
             },
-            content: { filteredUsers in
+            content: { filteredReservations in
                 VStack {
                     if isLoading {
-                        ProgressView("Loading users...")
+                        ProgressView("Loading reservations...")
                             .padding()
                     } else if let error = errorMessage {
                         Text(error)
                             .foregroundColor(.red)
                             .padding()
                     } else {
-                        if filteredUsers.isEmpty {
+                        if filteredReservations.isEmpty {
                             VStack {
                                 Image(systemName: "exclamationmark.circle")
                                     .resizable()
@@ -45,7 +48,7 @@ struct ManageUsersView: View {
                                     .foregroundColor(.gray)
                                     .padding(.bottom, 10)
 
-                                Text("No users available.")
+                                Text("No reservations available.")
                                     .font(.headline)
                                     .foregroundColor(.secondary)
 
@@ -57,19 +60,19 @@ struct ManageUsersView: View {
                             }
                             .padding(.top, 50)
                         } else {
-                            List(filteredUsers) { user in
+                            List(filteredReservations) { reservation in
                                 HStack {
                                     VStack(alignment: .leading) {
-                                        Text(user.name)
+                                        Text(reservation.id)
                                             .font(.headline)
                                     }
                                     Spacer()
                                     Menu {
                                         Button("Edit", systemImage: "pencil") {
-                                            editUser(user)
+                                            editMyReservation(reservation)
                                         }
                                         Button("Delete", systemImage: "trash", role: .destructive) {
-                                            deleteUser(user)
+                                            deleteMyReservation(reservation)
                                         }
                                     } label: {
                                         Image(systemName: "ellipsis.circle")
@@ -85,39 +88,48 @@ struct ManageUsersView: View {
                     }
                 }
             },
-            items: users
+            items: reservations
         )
         .onAppear {
-            loadUsers()
+            loadReservations()
         }
         // Use navigationDestination modifier instead of NavigationLink with isActive
-        .navigationDestination(isPresented: $isShowingAddUser) {
-            AddUserView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+        .navigationDestination(isPresented: $isShowingAddReservation) {
+            AddReservationView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+        }
+        .navigationDestination(isPresented: $isShowingEditReservation) {
+            if let reservationToEdit = selectedReservation {
+                EditReservationView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout,
+                    reservation: reservationToEdit // Pass the selected reservation here
+                )
+            }
         }
     }
 
-    private func loadUsers() {
+    private func loadReservations() {
         isLoading = true
         errorMessage = nil
-
         Task {
             do {
-                let fetchedUsers = try await UsersService.shared.fetchAllUsers()
-                self.users = fetchedUsers
+                let fetchedReservations = try await ReservationsService.shared.fetchMyReservations()
+                self.reservations = fetchedReservations
             } catch {
-                self.errorMessage = "Failed to load rooms: \(error.localizedDescription)"
+                self.errorMessage = "Failed to load reservations: \(error.localizedDescription)"
             }
             self.isLoading = false
         }
     }
 
-    private func editUser(_ user: User) {
-        // TODO: Show edit sheet or navigate to edit screen
-        print("Editing user: \(user.name)")
+    private func editMyReservation(_ reservation: Reservation) {
+        selectedReservation = reservation
+        isShowingEditReservation = true
     }
 
-    private func deleteUser(_ user: User) {
+    private func deleteMyReservation(_ reservation: Reservation) {
         // TODO: Add delete confirmation and backend call
-        print("Deleting user: \(user.name)")
+        print("Deleting reservation: \(reservation.id)")
     }
 }

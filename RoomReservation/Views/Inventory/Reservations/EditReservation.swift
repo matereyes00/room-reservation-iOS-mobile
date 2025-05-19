@@ -7,10 +7,12 @@
 
 import SwiftUI
 
-struct AddReservationView: View {
+struct EditReservationView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
+    let reservation: Reservation // 👈 ADD THIS LINE
+    
     @State private var errorMessage: String? = nil
     @Environment(\.dismiss) private var dismiss
 
@@ -116,7 +118,7 @@ struct AddReservationView: View {
                 }
             }
 
-            .navigationTitle("Add Reservation")
+            .navigationTitle("Edit Reservation")
             .navigationBarBackButtonHidden(true)
             .disableBackSwipe()
         }
@@ -139,7 +141,7 @@ struct AddReservationView: View {
     }
 }
 
-struct AddReservationView_Previews: PreviewProvider {
+struct EditReservationView_Previews: PreviewProvider {
     @State static var loggedIn = true
 
     static var previews: some View {

@@ -13,8 +13,11 @@ struct AddRoomView: View {
     let onLogout: () -> Void
     @State private var errorMessage: String? = nil
 
-    @State private var username: String = ""
-    @State private var email: String = ""
+    @State private var roomName: String = ""
+    @State private var roomCapacity: Int = 0
+    @State private var roomDescription: String = ""
+    @State private var roomStatus: RoomStatus = .active
+    
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -23,13 +26,24 @@ struct AddRoomView: View {
                 Text("Add Room")
                     .font(.title)
                 
-                Button(action:{}) {
-                    Text("Save")
-                }
-                Button("Cancel") {
-                    dismiss()
-                }
+                Form {
+                    TextField("Room Name", text: $roomName)
+                    TextField("Room Description", text: $roomDescription)
+                    TextField("Room Capacity", value: $roomCapacity, formatter: NumberFormatter())
+                        .keyboardType(.numberPad)
+                    Picker("Room Status", selection: $roomStatus) {
+                        Text("Active").tag(RoomStatus.active)
+                        Text("Inactive").tag(RoomStatus.inactive)
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
                 
+                    Button("Save") {
+                        print("Do something")
+                    }
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
             }
             .padding()
             .navigationBarBackButtonHidden(true)
