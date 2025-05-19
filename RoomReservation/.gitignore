@@ -1,0 +1,9 @@
+//
+//  .gitignore
+//  RoomReservation
+//
+//  Created by Martina Reyes on 5/16/25.
+//
+
+.env
+Secrets.xcconfig

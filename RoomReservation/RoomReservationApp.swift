@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct PomodoroTimerApp: App {
+struct RoomReservationApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
