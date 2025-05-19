@@ -5,7 +5,7 @@
 //  Created by Martina Reyes on 5/16/25.
 //
 
-enum RoomStatus: String, Codable {
+enum RoomStatus: String, Codable, CaseIterable {
     case active
     case inactive
 }
