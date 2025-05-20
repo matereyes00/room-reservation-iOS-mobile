@@ -39,7 +39,10 @@ struct InventoryView: View {
         }
         return .client // default fallback
     }()
-
+    
+    var currentUsername: String {
+            UserDefaults.standard.string(forKey: "userName") ?? "Unknown User"
+        }
 
     let columns = [
         GridItem(.flexible()),
@@ -49,12 +52,12 @@ struct InventoryView: View {
     var body: some View {
         NavigationStack {
             if userRole == .client {
-                // Directly show the My Reservations view
                 ManageMyReservationsView(
                     isLoggedIn: $isLoggedIn,
                     accessToken: accessToken,
                     onLogout: onLogout,
-                    userRole: userRole
+                    userRole: userRole,
+                    currentUserName: currentUsername
                 )
             } else {
                 // Admin UI
@@ -116,7 +119,8 @@ struct InventoryView: View {
                 isLoggedIn: $isLoggedIn,
                 accessToken: accessToken,
                 onLogout: onLogout,
-                userRole: userRole
+                userRole: userRole,
+                currentUserName: currentUsername
             )
         case "Users":
             if userRole == .admin {

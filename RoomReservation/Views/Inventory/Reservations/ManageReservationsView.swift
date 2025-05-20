@@ -69,17 +69,56 @@ struct ManageReservationsView: View {
                         } else {
                             List(filteredReservations) { reservation in
                                 HStack {
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 6) {
                                         Text(reservation.id)
                                             .font(.headline)
+                                        
+                                        Text("Start: \(reservation.startBookingDate)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("End: \(reservation.endBookingDate)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("From: \(reservation.bookingTimeStart) To: \(reservation.bookingTimeEnd)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Room Status: \(reservation.isRoomBeingUsed.rawValue.capitalized)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Booking Status: \(reservation.bookingStatus?.rawValue.capitalized ?? "Unknown")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Participants: \(reservation.numberOfParticipants)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Room: \(reservation.room?.roomName ?? "Unknown")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+
+                                        Text("Booking Created By: \(reservation.user?.name ?? "Unknown")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
                                     }
+                                    
                                     Spacer()
+                                    
                                     Menu {
-                                        Button("Edit", systemImage: "pencil") {
+                                        Button {
                                             editReservation(reservation)
+                                        } label: {
+                                            Label("Edit", systemImage: "pencil")
                                         }
-                                        Button("Delete", systemImage: "trash", role: .destructive) {
+                                        
+                                        Button(role: .destructive) {
                                             deleteReservation(reservation)
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
                                         }
                                     } label: {
                                         Image(systemName: "ellipsis.circle")
@@ -88,7 +127,8 @@ struct ManageReservationsView: View {
                                             .padding(.leading, 8)
                                     }
                                 }
-                                .padding(.vertical, 4)
+                                .padding(.vertical, 8)
+
                             }
                             .listStyle(PlainListStyle())
                         }
@@ -101,9 +141,9 @@ struct ManageReservationsView: View {
             loadReservations()
         }
         // Use navigationDestination modifier instead of NavigationLink with isActive
-        .navigationDestination(isPresented: $isShowingAddReservation) {
-            AddReservationView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
-        }
+//        .navigationDestination(isPresented: $isShowingAddReservation) {
+//            AddReservationView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+//        }
     }
 
     private func loadReservations() {
@@ -113,7 +153,6 @@ struct ManageReservationsView: View {
         Task {
             do {
                 let fetchedReservations = try await ReservationsService.shared.fetchAllReservations()
-                print("Fetched reservations: \(fetchedReservations)")
                 self.reservations = fetchedReservations
             } catch {
                 self.errorMessage = "Failed to load reservations: \(error.localizedDescription)"

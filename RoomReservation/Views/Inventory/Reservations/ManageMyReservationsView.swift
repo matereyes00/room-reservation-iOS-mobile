@@ -12,6 +12,7 @@ struct ManageMyReservationsView: View {
     let accessToken: String
     let onLogout: () -> Void
     let userRole: Role
+    let currentUserName: String
     
     @State private var reservations: [Reservation] = []
     @State private var isLoading = true
@@ -49,7 +50,7 @@ struct ManageMyReservationsView: View {
                                     .foregroundColor(.gray)
                                     .padding(.bottom, 10)
 
-                                Text("No reservations available.")
+                                Text("You have no reservations.")
                                     .font(.headline)
                                     .foregroundColor(.secondary)
 
@@ -63,17 +64,56 @@ struct ManageMyReservationsView: View {
                         } else {
                             List(filteredReservations) { reservation in
                                 HStack {
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 6) {
                                         Text(reservation.id)
                                             .font(.headline)
+                                        
+                                        Text("Start: \(reservation.startBookingDate)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("End: \(reservation.endBookingDate)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("From: \(reservation.bookingTimeStart) To: \(reservation.bookingTimeEnd)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Room Status: \(reservation.isRoomBeingUsed.rawValue.capitalized)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Booking Status: \(reservation.bookingStatus?.rawValue.capitalized ?? "Unknown")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Participants: \(reservation.numberOfParticipants)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Room: \(reservation.room?.roomName ?? "Unknown")")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+
+                                        Text("Booking Created By: \(currentUserName)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
                                     }
+                                    
                                     Spacer()
+                                    
                                     Menu {
-                                        Button("Edit", systemImage: "pencil") {
+                                        Button {
                                             editMyReservation(reservation)
+                                        } label: {
+                                            Label("Edit", systemImage: "pencil")
                                         }
-                                        Button("Delete", systemImage: "trash", role: .destructive) {
+                                        
+                                        Button(role: .destructive) {
                                             deleteMyReservation(reservation)
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
                                         }
                                     } label: {
                                         Image(systemName: "ellipsis.circle")
@@ -82,7 +122,8 @@ struct ManageMyReservationsView: View {
                                             .padding(.leading, 8)
                                     }
                                 }
-                                .padding(.vertical, 4)
+                                .padding(.vertical, 8)
+
                             }
                             .listStyle(PlainListStyle())
                         }
@@ -95,19 +136,19 @@ struct ManageMyReservationsView: View {
             loadReservations()
         }
         // Use navigationDestination modifier instead of NavigationLink with isActive
-        .navigationDestination(isPresented: $isShowingAddReservation) {
-            AddReservationView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
-        }
-        .navigationDestination(isPresented: $isShowingEditReservation) {
-            if let reservationToEdit = selectedReservation {
-                EditReservationView(
-                    isLoggedIn: $isLoggedIn,
-                    accessToken: accessToken,
-                    onLogout: onLogout,
-                    reservation: reservationToEdit // Pass the selected reservation here
-                )
-            }
-        }
+//        .navigationDestination(isPresented: $isShowingAddReservation) {
+//            AddReservationView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+//        }
+//        .navigationDestination(isPresented: $isShowingEditReservation) {
+//            if let reservationToEdit = selectedReservation {
+//                EditReservationView(
+//                    isLoggedIn: $isLoggedIn,
+//                    accessToken: accessToken,
+//                    onLogout: onLogout,
+//                    reservation: reservationToEdit // Pass the selected reservation here
+//                )
+//            }
+//        }
     }
 
     private func loadReservations() {

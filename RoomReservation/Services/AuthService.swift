@@ -57,7 +57,8 @@ class AuthService {
         }
     }
 
-    func login(username: String, password: String) async throws -> (String, Role) {
+    func login(username: String, password: String) async throws -> (String, Role, String
+    ) {
         guard let url = URL(string: "\(baseURL)/auth/login") else {
             throw URLError(.badURL)
         }
@@ -97,11 +98,14 @@ class AuthService {
         }
         let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
         let token = decoded.user.accessToken
+        let username = decoded.user.user.name
         let roleString = decoded.user.user.roles
         print("[ROLE STRING] \(type(of:roleString))")
         UserDefaults.standard.set(token, forKey: "accessToken")
         UserDefaults.standard.set(roleString.rawValue, forKey: "userRole")
-        return (accessToken, roleString)
+        UserDefaults.standard.set(username, forKey: "userName")
+
+        return (accessToken, roleString, username)
 
     }
 }
