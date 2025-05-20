@@ -15,14 +15,22 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             NavigationStack {
-                RoomListView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+                HomeView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout
+                )
             }
             .tabItem {
                 Label("Home", systemImage: "building.2")
             }
             
             NavigationStack {
-                InventoryView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+                InventoryView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout
+                )
             }
             .tabItem {
                 Label("Inventory", systemImage: "shippingbox")
