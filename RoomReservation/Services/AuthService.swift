@@ -57,7 +57,7 @@ class AuthService {
         }
     }
 
-    func login(username: String, password: String) async throws -> String {
+    func login(username: String, password: String) async throws -> (String, Role) {
         guard let url = URL(string: "\(baseURL)/auth/login") else {
             throw URLError(.badURL)
         }
@@ -65,26 +65,15 @@ class AuthService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        print("HTTP method:", request.httpMethod ?? "none")
-        
         let body = [
             "name": username,
             "password": password
         ]
-        print("Body dictionary:", body)
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
         } catch {
             print("Failed to serialize JSON:", error)
-        }
-
-        if let body = request.httpBody,
-           let bodyString = String(data: body, encoding: .utf8) {
-            print("Body:", bodyString)
-        } else {
-            print("No body found in request")
         }
         
         // Using async URLSession data call
@@ -104,13 +93,15 @@ class AuthService {
             let userObject = json["user"] as? [String: Any],
             let accessToken = userObject["accessToken"] as? String
         else {
-            print("hahaha")
             throw NSError(domain: "InvalidResponse", code: 0)
         }
         let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
         let token = decoded.user.accessToken
+        let roleString = decoded.user.user.roles
+        print("[ROLE STRING] \(type(of:roleString))")
         UserDefaults.standard.set(token, forKey: "accessToken")
-        return accessToken
+        UserDefaults.standard.set(roleString.rawValue, forKey: "userRole")
+        return (accessToken, roleString)
 
     }
 }
