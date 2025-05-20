@@ -65,7 +65,7 @@ struct LoginView: View {
         isLoading = true
         Task {
             do {
-                let loginResponse = try await AuthService.shared.login(
+                let (loginResponse) = try await AuthService.shared.login(
                     username: form.username,
                     password: form.password
                 )

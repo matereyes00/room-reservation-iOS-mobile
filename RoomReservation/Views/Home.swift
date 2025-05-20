@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RoomListView: View {
+struct HomeView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var isLoggedIn: Bool
     var accessToken: String
@@ -36,7 +36,7 @@ struct RoomListView: View {
                 } else {
                     if rooms.isEmpty {
                         VStack {
-                            Image(systemName: "building.2.crop.circle.badge.exclamationmark")
+                            Image(systemName: "exclamationmark.circle")
                                 .resizable()
                                 .frame(width: 80, height: 80)
                                 .foregroundColor(.gray)
@@ -108,11 +108,11 @@ struct RoomListView: View {
     }
 }
 
-struct RoomListView_Previews: PreviewProvider {
+struct HomeView_Previews: PreviewProvider {
     @State static var loggedIn = true
 
     static var previews: some View {
-        RoomListView(
+        HomeView(
             isLoggedIn: $loggedIn,               // Binding to the @State var
             accessToken: "dummy_access_token",  // Sample string for preview
             onLogout: { print("Logged out") }   // Simple closure for preview
