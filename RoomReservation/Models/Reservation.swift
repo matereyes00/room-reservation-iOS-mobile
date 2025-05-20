@@ -18,10 +18,10 @@ enum ReservationStatus: String, Codable, CaseIterable {
 // Your Reservation struct
 struct Reservation: Codable, Identifiable, Hashable {
     var id: String
-    var startBookingDate: Date
-    var endBookingDate: Date
-    var bookingTimeStart: Date
-    var bookingTimeEnd: Date
+    var startBookingDate: String
+    var endBookingDate: String
+    var bookingTimeStart: String
+    var bookingTimeEnd: String
     var isRoomBeingUsed: RoomStatus
     var bookingStatus: ReservationStatus?
     var numberOfParticipants: Int
@@ -30,6 +30,6 @@ struct Reservation: Codable, Identifiable, Hashable {
     var room: Room?       // Room is another struct/model
     var user: User?       // User is another struct/model
     
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: String
+    var updatedAt: String
 }
