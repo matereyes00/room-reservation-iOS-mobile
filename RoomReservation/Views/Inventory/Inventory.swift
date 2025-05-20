@@ -7,16 +7,20 @@
 
 import SwiftUI
 
+struct AccessDeniedView: View {
+    var body: some View {
+        Text("Access Denied")
+            .foregroundColor(.red)
+            .font(.title)
+    }
+}
+
 struct InventoryView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
-    @State private var errorMessage: String? = nil
-
-    @State private var username: String = ""
-    @State private var email: String = ""
-    @Environment(\.dismiss) private var dismiss
     
+    @State private var errorMessage: String? = nil
     let items = [
         "Rooms",
         "Reservations",
@@ -24,7 +28,18 @@ struct InventoryView: View {
         "Users"
     ]
     
-//    isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+    @State private var username: String = ""
+    @State private var email: String = ""
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var userRole: Role = {
+        if let roleString = UserDefaults.standard.string(forKey: "userRole"),
+           let role = Role(rawValue: roleString) {
+            return role
+        }
+        return .client // default fallback
+    }()
+
 
     let columns = [
         GridItem(.flexible()),
@@ -33,74 +48,101 @@ struct InventoryView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Text("Inventory View")
-                    .font(.title)
-                Text("What do you want to manage?")
-                LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(items, id: \.self) { label in
-                        NavigationLink {
-                            destinationView(for: label)
-                        } label: {
-                            Text(label)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+            if userRole == .client {
+                // Directly show the My Reservations view
+                ManageMyReservationsView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout,
+                    userRole: userRole
+                )
+            } else {
+                // Admin UI
+                VStack(spacing: 20) {
+                    Text("Inventory View")
+                        .font(.title)
+                    Text("What do you want to manage?")
+                    LazyVGrid(columns: columns, spacing: 20) {
+                        ForEach(items, id: \.self) { label in
+                            NavigationLink {
+                                destinationView(for: label)
+                            } label: {
+                                Text(label)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                            }
                         }
                     }
+                    .padding()
                 }
-
                 .padding()
+                .navigationBarBackButtonHidden(true)
+                .disableBackSwipe()
             }
-            .padding()
-            .navigationBarBackButtonHidden(true)
-            .disableBackSwipe()
         }
-        
     }
+
     
     @ViewBuilder
     func destinationView(for label: String) -> some View {
         switch label {
         case "Rooms":
-            ManageRoomsView(
-                isLoggedIn: $isLoggedIn,
-                accessToken: accessToken,
-                onLogout: onLogout
-            )
+            if userRole == .admin {
+                ManageRoomsView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout,
+                    userRole: userRole
+                )
+            } else {
+                AccessDeniedView()
+            }
         case "Reservations":
-            ManageReservationsView(
-                isLoggedIn: $isLoggedIn,
-                accessToken: accessToken, 
-                onLogout: onLogout
-        )
+            if userRole == .admin {
+                ManageReservationsView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout,
+                    userRole: userRole
+                )
+            } else {
+                AccessDeniedView()
+            }
         case "My Reservations":
             ManageMyReservationsView(
                 isLoggedIn: $isLoggedIn,
                 accessToken: accessToken,
-                onLogout: onLogout
-        )
+                onLogout: onLogout,
+                userRole: userRole
+            )
         case "Users":
-            ManageUsersView(
-                isLoggedIn: $isLoggedIn,
-                accessToken: accessToken,  // <- THIS should be the token, not the username!
-                onLogout: onLogout
-        )
+            if userRole == .admin {
+                ManageUsersView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout,
+                    userRole: userRole
+                )
+            } else {
+                AccessDeniedView()
+            }
         default:
             Text("Unknown View")
         }
     }
+
 }
 struct InventoryView_Previews: PreviewProvider {
     @State static var loggedIn = true
 
     static var previews: some View {
         InventoryView(
-            isLoggedIn: $loggedIn,               // Binding to the @State var
-            accessToken: "dummy_access_token",  // Sample string for preview
-            onLogout: { print("Logged out") }   // Simple closure for preview
+            isLoggedIn: $loggedIn,
+            accessToken: "dummy_access_token",
+            onLogout: { print("Logged out") }
         )
     }
 }

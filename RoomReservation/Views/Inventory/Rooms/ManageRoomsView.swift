@@ -11,6 +11,7 @@ struct ManageRoomsView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
+    let userRole: Role
     
     @State private var rooms: [Room] = []
     @State private var isLoading = true
@@ -143,6 +144,7 @@ extension ManageRoomsView {
         self._isLoggedIn = isLoggedIn
         self.accessToken = accessToken
         self.onLogout = onLogout
+        self.userRole = .admin
         _rooms = State(initialValue: mockRooms)
     }
 }

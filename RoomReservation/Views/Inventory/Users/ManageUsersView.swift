@@ -11,6 +11,16 @@ struct ManageUsersView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
+    let userRole: Role
+    
+    var items: [String] {
+        switch userRole {
+        case .admin:
+            return ["Rooms", "Reservations", "My Reservations", "Users"]
+        case .client:
+            return ["My Reservations"]
+        }
+    }
     
     @State private var users: [User] = []
     @State private var isLoading = true

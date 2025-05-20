@@ -11,6 +11,7 @@ struct ManageMyReservationsView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
+    let userRole: Role
     
     @State private var reservations: [Reservation] = []
     @State private var isLoading = true
