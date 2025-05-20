@@ -11,24 +11,105 @@ struct NotificationsView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
+    
     @State private var errorMessage: String? = nil
-
-    @State private var username: String = ""
-    @State private var email: String = ""
+    @State private var notifications: [Notification] = []
+    @State private var isLoading = true
+    @State private var searchText = ""
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Notifications")
-                    .font(.title)
-                Text("hehe")
+        RootManageView(
+            title: "Notifications",
+            searchText: $searchText,
+            items: notifications,
+            content: { notifications in
+                VStack {
+                    if isLoading {
+                        ProgressView("Loading notifications...")
+                            .padding()
+                    }
+                    else if let error = errorMessage {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .padding()
+                    }
+                    else {
+                        if notifications.isEmpty {
+                            VStack {
+                                Image(systemName: "exclamationmark.circle")
+                                    .resizable()
+                                    .frame(width: 80, height: 80)
+                                    .foregroundColor(.gray)
+                                    .padding(.bottom, 10)
+
+                                Text("No notifications available.")
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+
+                                Text("Please check back later or contact the admin.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            }
+                            .padding(.top, 50)
+                        }
+                        else {
+                            List(notifications) { notification in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(notification.title)
+                                            .font(.headline)
+                                        Text(notification.message)
+                                            .font(.caption)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Menu {Button(role: .destructive) {
+                                        deleteNotification(notification)
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    } label: {
+                                        Image(systemName: "ellipsis.circle")
+                                            .font(.title3)
+                                            .foregroundColor(.primary)
+                                            .padding(.leading, 8)
+                                    }
+                                }
+                                .padding(.vertical, 8)
+
+                            }
+                            .listStyle(PlainListStyle())
+                        }
+                    }
+                }
             }
-            .padding()
-            .navigationBarBackButtonHidden(true)
-            .disableBackSwipe()
+        )
+        .onAppear {
+            loadAllNotifications()
         }
-        
+    }
+    private func loadAllNotifications() {
+        isLoading = true
+        errorMessage = nil
+        Task {
+            do {
+                let fetchedNotifications = try await NotificationsService.shared.fetchAllNotifications()
+                notifications = fetchedNotifications
+                isLoading = false
+                print("Successfully fetched in caller:", notifications)
+            } catch {
+                print("❌ Error fetching notifications:", error)
+            }
+        }
+
+    }
+    private func deleteNotification(_ notification: Notification) {
+        // TODO: Add delete confirmation and backend call
+        print("Deleting notification: \(notification.id)")
     }
 }
 struct NotificationsView_Previews: PreviewProvider {

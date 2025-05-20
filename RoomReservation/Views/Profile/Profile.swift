@@ -1,6 +1,6 @@
 //
 //  Profile.swift
-//  Authenticator
+//  RoomReservation
 //
 //  Created by Martina Reyes on 5/16/25.
 //
@@ -11,56 +11,73 @@ struct ProfileView: View {
     @Binding var isLoggedIn: Bool
     let accessToken: String
     let onLogout: () -> Void
-    @State private var errorMessage: String? = nil
 
-    @State private var username: String = ""
-    @State private var email: String = ""
+    @State private var errorMessage: String? = nil
+    @State private var user: User? = nil
+    @State private var isLoading = true
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text("Profile View")
-                Button(action: {}) {
-                    Text("Edit Profile")
-                      .padding()
-                      .foregroundColor(.white)
-                      .background(.black)
-                      .cornerRadius(10)
-                  }
-//                if username.isEmpty || email.isEmpty {
-//                    ProgressView("Loading profile...")
-//                } else {
-//                    Text("Welcome back, \(username)!")
-//                        .font(.title)
-//                    Text("Email: \(email)")
-//                        .font(.subheadline)
-//                        .foregroundColor(.gray)
-//                }
+                if isLoading {
+                    ProgressView("Loading profile...")
+                } else if let user = user {
+                    Text("Welcome, \(user.name)")
+                        .font(.title)
 
-                Button(action: { onLogout() }) {
-                    Text("Logout")
-                        .padding()
-                        .foregroundColor(.black)
-                        .border(.black)
+                    Text("Email: \(user.email)")
+                        .foregroundColor(.gray)
+
+                    Button(action: {}) {
+                        Text("Edit Profile")
+                            .padding()
+                            .foregroundColor(.white)
+                            .background(.black)
+                            .cornerRadius(10)
+                    }
+
+                    Button(action: { onLogout() }) {
+                        Text("Logout")
+                            .padding()
+                            .foregroundColor(.black)
+                            .border(.black)
+                    }
+
+                } else if let errorMessage = errorMessage {
+                    Text("Error: \(errorMessage)")
+                        .foregroundColor(.red)
+
+                    Button("Retry") {
+                        Task {
+                            await loadProfile()
+                        }
+                    }
                 }
-
             }
             .padding()
+            .onAppear {
+                Task {
+                    await loadProfile()
+                }
+            }
             .navigationBarBackButtonHidden(true)
             .disableBackSwipe()
         }
     }
 
-}
-struct ProfileView_Previews: PreviewProvider {
-    @State static var loggedIn = true
-
-    static var previews: some View {
-        ProfileView(
-            isLoggedIn: $loggedIn,               // Binding to the @State var
-            accessToken: "dummy_access_token",  // Sample string for preview
-            onLogout: { print("Logged out") }   // Simple closure for preview
-        )
+    func loadProfile() async {
+        do {
+            isLoading = true
+            let user = try await ProfileService.shared.fetchProfile()
+            print("[USER] \(user)")
+            self.user = user
+            self.errorMessage = nil
+        } catch {
+            self.errorMessage = error.localizedDescription
+            self.user = nil
+        }
+        isLoading = false
     }
 }

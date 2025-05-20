@@ -34,6 +34,7 @@ struct ManageReservationsView: View {
         RootManageView(
             title: "Manage Reservations",
             searchText: $searchText,
+            items: reservations,
             onAdd: {
                 isShowingAddReservation = true
             },
@@ -134,8 +135,7 @@ struct ManageReservationsView: View {
                         }
                     }
                 }
-            },
-            items: reservations
+            }
         )
         .onAppear {
             loadReservations()
@@ -153,6 +153,7 @@ struct ManageReservationsView: View {
         Task {
             do {
                 let fetchedReservations = try await ReservationsService.shared.fetchAllReservations()
+                print("Fetched reservations: \(fetchedReservations)")
                 self.reservations = fetchedReservations
             } catch {
                 self.errorMessage = "Failed to load reservations: \(error.localizedDescription)"

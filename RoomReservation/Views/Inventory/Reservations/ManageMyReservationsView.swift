@@ -29,6 +29,7 @@ struct ManageMyReservationsView: View {
         RootManageView(
             title: "Manage My Reservations",
             searchText: $searchText,
+            items: reservations,
             onAdd: {
                 isShowingAddReservation = true
             },
@@ -129,8 +130,7 @@ struct ManageMyReservationsView: View {
                         }
                     }
                 }
-            },
-            items: reservations
+            }
         )
         .onAppear {
             loadReservations()

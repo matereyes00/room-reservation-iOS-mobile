@@ -34,6 +34,7 @@ struct ManageUsersView: View {
         RootManageView(
             title: "Manage Users",
             searchText: $searchText,
+            items: users,
             onAdd: {
                 isShowingAddUser = true
             },
@@ -94,8 +95,7 @@ struct ManageUsersView: View {
                         }
                     }
                 }
-            },
-            items: users
+            }
         )
         .onAppear {
             loadUsers()

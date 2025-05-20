@@ -10,7 +10,8 @@ import SwiftUI
 struct RootManageView<Item: Identifiable, Content: View>: View {
     let title: String
     @Binding var searchText: String
-    let onAdd: () -> Void
+    let onAdd: (() -> Void)?
+
     let content: ([Item]) -> Content
     let items: [Item]
 
@@ -24,6 +25,21 @@ struct RootManageView<Item: Identifiable, Content: View>: View {
             return items
         }
     }
+    
+    // ✅ Custom initializer with default value for onAdd
+       init(
+           title: String,
+           searchText: Binding<String>,
+           items: [Item],
+           onAdd: (() -> Void)? = nil,
+           content: @escaping ([Item]) -> Content
+       ) {
+           self.title = title
+           self._searchText = searchText
+           self.items = items
+           self.onAdd = onAdd
+           self.content = content
+       }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -34,16 +50,18 @@ struct RootManageView<Item: Identifiable, Content: View>: View {
 
             Divider()
 
-            HStack {
-                Button(action: onAdd) {
-                    Text("Add")
-                        .padding(8)
-                        .background(Color.blue.opacity(0.2))
-                        .cornerRadius(8)
+            if let onAdd = onAdd {
+                HStack {
+                    Button(action: onAdd) {
+                        Text("Add")
+                            .padding(8)
+                            .background(Color.blue.opacity(0.2))
+                            .cornerRadius(8)
+                    }
+                    Spacer()
                 }
-                Spacer()
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
 
             content(filteredItems)
                 .padding(.horizontal)

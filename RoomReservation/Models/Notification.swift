@@ -15,9 +15,5 @@ struct Notification: Codable, Identifiable {
     let scheduledTimeStart: String? // Optional, time as string ("HH:mm:ss")
     let scheduledTimeEnd: String?  
     let isRead: Bool
-    let user: User                  // Reference to your User model
-    
-    enum CodingKeys: String, CodingKey {
-        case id, title, message, scheduledDate, scheduledTimeStart, scheduledTimeEnd, isRead, user
-    }
+    let user: User   
 }

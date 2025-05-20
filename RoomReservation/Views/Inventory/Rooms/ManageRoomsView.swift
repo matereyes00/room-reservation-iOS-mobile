@@ -25,6 +25,7 @@ struct ManageRoomsView: View {
         RootManageView(
             title: "Manage Rooms",
             searchText: $searchText,
+            items: rooms,
             onAdd: {
                 isShowingAddRoom = true
             },
@@ -46,11 +47,11 @@ struct ManageRoomsView: View {
                                     .frame(width: 80, height: 80)
                                     .foregroundColor(.gray)
                                     .padding(.bottom, 10)
-
+                                
                                 Text("No rooms available.")
                                     .font(.headline)
                                     .foregroundColor(.secondary)
-
+                                
                                 Text("Please check back later or contact the admin.")
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
@@ -94,8 +95,7 @@ struct ManageRoomsView: View {
                         }
                     }
                 }
-            },
-            items: rooms
+            }
         )
         .onAppear {
             loadRooms()
