@@ -6,7 +6,6 @@
 //
 
 enum Role: String, Codable, Hashable {
-    case superadmin = "superadmin"
     case admin = "admin"
     case client = "client"
 }
