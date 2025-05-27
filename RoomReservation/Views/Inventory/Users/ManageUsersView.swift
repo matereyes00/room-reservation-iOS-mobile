@@ -25,9 +25,11 @@ struct ManageUsersView: View {
     @State private var users: [User] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var selectedUserToEdit: User? = nil
     
     @State private var searchText = ""
     @State private var isShowingAddUser = false
+    @State private var isShowingEditUser = false
 
 
     var body: some View {
@@ -71,8 +73,18 @@ struct ManageUsersView: View {
                             List(filteredUsers) { user in
                                 HStack {
                                     VStack(alignment: .leading) {
-                                        Text(user.name)
-                                            .font(.headline)
+                                        HStack{
+                                            Text(user.name)
+                                                .font(.headline)
+                                        }
+                                        HStack {
+                                            Text(user.email)
+                                                .font(.caption)
+                                        }
+                                        HStack {
+                                            Text(user.roles.rawValue.capitalized)
+                                                .font(.caption)
+                                        }
                                     }
                                     Spacer()
                                     Menu {
@@ -102,17 +114,34 @@ struct ManageUsersView: View {
         }
         // Use navigationDestination modifier instead of NavigationLink with isActive
         .navigationDestination(isPresented: $isShowingAddUser) {
-            AddUserView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+            AddUserView(
+                isLoggedIn: $isLoggedIn,
+                accessToken: accessToken,
+                onLogout: onLogout)
         }
+        .navigationDestination(item: $selectedUserToEdit) { userToEdit in
+            EditUserView(
+                isLoggedIn: $isLoggedIn,
+                accessToken: accessToken,
+                onLogout: onLogout,
+                user: userToEdit,
+                onSave: { _ in
+                    loadUsers() // Refresh the entire user list
+                    selectedUserToEdit = nil // Dismisses the EditUserView
+                    isShowingEditUser = false
+                }
+            )
+        }
+
+
     }
 
     private func loadUsers() {
         isLoading = true
         errorMessage = nil
-
         Task {
             do {
-                let fetchedUsers = try await UsersService.shared.fetchAllUsers()
+                let fetchedUsers = try await UserHooks.loadUsers()
                 self.users = fetchedUsers
             } catch {
                 self.errorMessage = "Failed to load rooms: \(error.localizedDescription)"
@@ -120,14 +149,22 @@ struct ManageUsersView: View {
             self.isLoading = false
         }
     }
-
+    
     private func editUser(_ user: User) {
-        // TODO: Show edit sheet or navigate to edit screen
-        print("Editing user: \(user.name)")
+        selectedUserToEdit = user
+        isShowingEditUser = true
     }
 
     private func deleteUser(_ user: User) {
-        // TODO: Add delete confirmation and backend call
-        print("Deleting user: \(user.name)")
+        UserHooks.deleteUser(
+            user,
+            onSuccess: { updatedUsers in
+                self.users = updatedUsers
+            },
+            onError: { error in
+                self.errorMessage = error
+            },
+            currentUsers: self.users
+        )
     }
 }

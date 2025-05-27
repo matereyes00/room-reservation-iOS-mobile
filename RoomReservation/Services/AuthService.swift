@@ -20,7 +20,8 @@ class AuthService {
         let bodyDict = [
             "name": username,
             "email": email,
-            "password": password,
+            // TODO: add old password field
+            "password": password, // TODO: change to new pw
             "confirmPassword": confirmPassword
         ]
 
@@ -46,8 +47,6 @@ class AuthService {
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        // Add auth header if required, e.g.:
-        // request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         let (_, response) = try await URLSession.shared.data(for: request)
 
@@ -59,7 +58,8 @@ class AuthService {
 
     func login(username: String, password: String) async throws -> (String, Role, String
     ) {
-        guard let url = URL(string: "\(baseURL)/auth/login") else {
+        guard let url = URL(string: "\(baseURL)/auth/login")
+        else {
             throw URLError(.badURL)
         }
         
@@ -87,7 +87,7 @@ class AuthService {
         }
         
         let responseString = String(data: data, encoding: .utf8) ?? "<empty>"
-        print("Response body string:", responseString)
+//        print("Response body string:", responseString)
 
         guard
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -100,12 +100,17 @@ class AuthService {
         let token = decoded.user.accessToken
         let username = decoded.user.user.name
         let roleString = decoded.user.user.roles
-        print("[ROLE STRING] \(type(of:roleString))")
+//        print("[ROLE STRING] \(type(of:roleString))")
+//        print("[ROLE STRING] \(roleString)")
         UserDefaults.standard.set(token, forKey: "accessToken")
         UserDefaults.standard.set(roleString.rawValue, forKey: "userRole")
         UserDefaults.standard.set(username, forKey: "userName")
+        
+        print(token)
 
-        return (accessToken, roleString, username)
+        return (token, roleString, username)
 
     }
+    
+    func regenerateTokens() {}
 }

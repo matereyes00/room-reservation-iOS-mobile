@@ -5,7 +5,7 @@ struct HomeView: View {
     @Binding var isLoggedIn: Bool
     var accessToken: String
     let onLogout: () -> Void
-
+    
     @State private var rooms: [Room] = []
     @State private var isLoading = true
     @State private var errorMessage: String?

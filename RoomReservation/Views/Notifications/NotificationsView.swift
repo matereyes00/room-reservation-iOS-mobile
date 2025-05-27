@@ -100,7 +100,7 @@ struct NotificationsView: View {
                 let fetchedNotifications = try await NotificationsService.shared.fetchAllNotifications()
                 notifications = fetchedNotifications
                 isLoading = false
-                print("Successfully fetched in caller:", notifications)
+//                print("Successfully fetched in caller:", notifications)
             } catch {
                 print("❌ Error fetching notifications:", error)
             }

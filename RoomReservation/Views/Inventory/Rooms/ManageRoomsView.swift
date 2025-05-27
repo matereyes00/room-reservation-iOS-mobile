@@ -19,6 +19,8 @@ struct ManageRoomsView: View {
     
     @State private var searchText = ""
     @State private var isShowingAddRoom = false
+    @State private var selectedRoomToEdit: Room? = nil
+    @State private var isShowingEditRoom = false
 
 
     var body: some View {
@@ -30,7 +32,6 @@ struct ManageRoomsView: View {
                 isShowingAddRoom = true
             },
             content: { filteredRooms in
-                // Here you receive filtered rooms to display.
                 VStack {
                     if isLoading {
                         ProgressView("Loading rooms...")
@@ -74,6 +75,10 @@ struct ManageRoomsView: View {
                                                 .lineLimit(2)
                                         }
                                     }
+                                    HStack {
+                                        Text("\(room.roomStatus.rawValue)")
+                                            .font(.subheadline)
+                                    }
                                     Spacer()
                                     Menu {
                                         Button("Edit", systemImage: "pencil") {
@@ -102,17 +107,36 @@ struct ManageRoomsView: View {
         }
         // Use navigationDestination modifier instead of NavigationLink with isActive
         .navigationDestination(isPresented: $isShowingAddRoom) {
-            AddRoomView(isLoggedIn: $isLoggedIn, accessToken: accessToken, onLogout: onLogout)
+            AddRoomView(
+                isLoggedIn: $isLoggedIn,
+                accessToken: accessToken,
+                onLogout: onLogout
+            )
+        }
+        .navigationDestination(isPresented: $isShowingEditRoom) {
+            if let roomToEdit = selectedRoomToEdit {
+                EditRoomView(
+                    isLoggedIn: $isLoggedIn,
+                    accessToken: accessToken,
+                    onLogout: onLogout,
+                    room: roomToEdit,
+                    onSave: { updatedRoom in
+                        if let index = rooms.firstIndex(where: { $0.id == updatedRoom.id }) {
+                            rooms[index] = updatedRoom
+                        }
+                        isShowingEditRoom = false
+                    }
+                )
+            }
         }
     }
 
     private func loadRooms() {
         isLoading = true
         errorMessage = nil
-
         Task {
             do {
-                let fetchedRooms = try await RoomsService.shared.fetchRooms()
+                let fetchedRooms = try await RoomHooks.loadRooms()
                 self.rooms = fetchedRooms
             } catch {
                 self.errorMessage = "Failed to load rooms: \(error.localizedDescription)"
@@ -122,64 +146,22 @@ struct ManageRoomsView: View {
     }
 
     private func editRoom(_ room: Room) {
-        // TODO: Show edit sheet or navigate to edit screen
-        print("Editing room: \(room.roomName)")
+        self.selectedRoomToEdit = room
+        self.isShowingEditRoom = true
     }
-
+    
     private func deleteRoom(_ room: Room) {
-        // TODO: Add delete confirmation and backend call
-        print("Deleting room: \(room.roomName)")
-    }
-}
-
-
-#if DEBUG
-extension ManageRoomsView {
-    init(
-        mockRooms: [Room],
-        isLoggedIn: Binding<Bool> = .constant(true),
-        accessToken: String = "",
-        onLogout: @escaping () -> Void = {}
-    ) {
-        self._isLoggedIn = isLoggedIn
-        self.accessToken = accessToken
-        self.onLogout = onLogout
-        self.userRole = .admin
-        _rooms = State(initialValue: mockRooms)
-    }
-}
-
-
-struct ManageRoomsView_Previews: PreviewProvider {
-    static let sampleRooms: [Room] = [
-        Room(
-            id: UUID().uuidString,
-            roomName: "Board Room",
-            roomCapacity: 20,
-            roomDescription: "Large meeting space with projector",
-            roomStatus: .inactive
-        ),
-        Room(
-            id: UUID().uuidString,
-            roomName: "Design Studio",
-            roomCapacity: 12,
-            roomDescription: "Creative space with whiteboards",
-            roomStatus: .active
-        ),
-        Room(
-            id: UUID().uuidString,
-            roomName: "Phone Booth",
-            roomCapacity: 2,
-            roomDescription: "Quiet space for calls",
-            roomStatus: .active
+        RoomHooks.deleteRoom(
+            room,
+            onSuccess: { updatedRooms in
+                self.rooms = updatedRooms
+            },
+            onError: { error in
+                self.errorMessage = error
+            },
+            currentRooms: self.rooms
         )
-    ]
-
-    static var previews: some View {
-        NavigationStack {
-            ManageRoomsView(mockRooms: sampleRooms)
-        }
     }
-}
-#endif
 
+    
+}

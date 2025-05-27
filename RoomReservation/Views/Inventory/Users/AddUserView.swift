@@ -33,7 +33,9 @@ struct AddUserView: View {
                 Form {
                     Section(header: Text("User Info")) {
                         TextField("Name", text: $form_name)
+                            .autocapitalization(.none)
                         TextField("Email", text: $form_email)
+                            .autocapitalization(.none)
                         
                         Picker("Role", selection: $selectedRole) {
                             Text("Admin").tag(Role.admin)
@@ -43,11 +45,13 @@ struct AddUserView: View {
                     }
                     Section(header: Text("User Password")) {
                         SecureField("Password", text:$form_password)
+                            .autocapitalization(.none)
                         SecureField("Confirm Password", text:$form_confirm_password)
+                            .autocapitalization(.none)
                     }
                     
-                    Button(action:{}) {
-                        Text("Save")
+                    Button("Save") {
+                        saveAddedUser()
                     }
                     Button("Cancel") {
                         dismiss()
@@ -60,16 +64,22 @@ struct AddUserView: View {
             .disableBackSwipe()
         }
     }
-
-}
-struct AddUserView_Previews: PreviewProvider {
-    @State static var loggedIn = true
-
-    static var previews: some View {
-        AddRoomView(
-            isLoggedIn: $loggedIn,               // Binding to the @State var
-            accessToken: "dummy_access_token",  // Sample string for preview
-            onLogout: { print("Logged out") }   // Simple closure for preview
-        )
+    private func saveAddedUser() {
+        Task {
+            print("Before addUser() call")
+            do{
+                let user = try await UsersService.shared.addUser(
+                    name: form_name,
+                    email: form_email,
+                    password: form_password,
+                    confirmPassword: form_confirm_password)
+                print("User \(user.name) Added Successfully")
+                dismiss()
+            } catch {
+                errorMessage = "Failed to add user: \(error.localizedDescription)"
+            }
+            print("After addUser() call")
+        }
     }
+
 }

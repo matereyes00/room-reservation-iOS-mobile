@@ -10,7 +10,23 @@ enum Role: String, Codable, Hashable {
     case client = "client"
 }
 
-struct User: Identifiable, Codable, Hashable {
+struct EditUser: Codable {
+    let name: String
+    let email: String
+}
+
+struct EditUserRole: Codable {
+    let roles: String
+}
+
+struct AddUser: Encodable {
+    let name: String
+    let email: String
+    let password: String
+    let confirmPassword: String
+}
+
+struct User: Identifiable, Codable,Equatable, Hashable, Sendable {
     let id: String
     let name: String
     let email: String
@@ -28,4 +44,8 @@ struct User: Identifiable, Codable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
+}
+
+struct UpdateUserResponse: Codable {
+    let message: String
 }

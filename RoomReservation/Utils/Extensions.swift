@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import Foundation
+
 
 struct DisableBackSwipeViewModifier: ViewModifier {
     func body(content: Content) -> some View {

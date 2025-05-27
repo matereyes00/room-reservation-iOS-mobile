@@ -6,6 +6,11 @@
 //
 import Foundation
 
+struct EncryptedRequest: Codable {
+    let encryptedPayload: String
+    let signature: String
+}
+
 struct LoginResponse: Decodable {
     struct UserWrapper: Decodable {
         let accessToken: String

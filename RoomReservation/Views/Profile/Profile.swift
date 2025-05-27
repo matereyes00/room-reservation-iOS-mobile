@@ -15,6 +15,8 @@ struct ProfileView: View {
     @State private var errorMessage: String? = nil
     @State private var user: User? = nil
     @State private var isLoading = true
+    
+    @State private var showEditProfile = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -30,12 +32,22 @@ struct ProfileView: View {
                     Text("Email: \(user.email)")
                         .foregroundColor(.gray)
 
-                    Button(action: {}) {
+                    Button(action: {
+                        showEditProfile = true
+                    }) {
                         Text("Edit Profile")
                             .padding()
                             .foregroundColor(.white)
                             .background(.black)
                             .cornerRadius(10)
+                    }
+                    .navigationDestination(isPresented: $showEditProfile) {
+                        EditProfileView(
+                            user: user,
+                            isLoggedIn: $isLoggedIn,
+                            accessToken: accessToken,
+                            onLogout: onLogout
+                        )
                     }
 
                     Button(action: { onLogout() }) {
@@ -62,6 +74,11 @@ struct ProfileView: View {
                     await loadProfile()
                 }
             }
+            .task(id: showEditProfile) {
+                if !showEditProfile {
+                    await loadProfile()
+                }
+            }
             .navigationBarBackButtonHidden(true)
             .disableBackSwipe()
         }
@@ -71,7 +88,6 @@ struct ProfileView: View {
         do {
             isLoading = true
             let user = try await ProfileService.shared.fetchProfile()
-            print("[USER] \(user)")
             self.user = user
             self.errorMessage = nil
         } catch {

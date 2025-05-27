@@ -4,7 +4,6 @@
 //
 //  Created by Martina Reyes on 5/16/25.
 //
-
 import SwiftUI
 
 struct LoginView: View {
@@ -12,7 +11,6 @@ struct LoginView: View {
     @State private var errorMessage: String?
     @State private var isLoading = false
     @State private var isLoggedIn = false
-    // Notify parent on login success
     let onLoginSuccess: (String) -> Void
 
     var body: some View {
@@ -44,6 +42,7 @@ struct LoginView: View {
                         .foregroundColor(.red)
                         .padding()
                 }
+
                 Button(action: signIn) {
                     Text("Log In")
                         .frame(maxWidth: .infinity)
@@ -57,7 +56,6 @@ struct LoginView: View {
             }
             .navigationBarBackButtonHidden(true)
             .disableBackSwipe()
-
         }
     }
 
@@ -65,25 +63,20 @@ struct LoginView: View {
         isLoading = true
         Task {
             do {
-                let (loginResponse) = try await AuthService.shared.login(
+                let (token, role, username) = try await AuthService.shared.login(
                     username: form.username,
                     password: form.password
                 )
                 isLoading = false
-                print("Login successful! Token: \(loginResponse)")
+
                 isLoggedIn = true
-                onLoginSuccess(form.username)
+                onLoginSuccess(username)
 
             } catch {
                 isLoading = false
                 errorMessage = error.localizedDescription
             }
         }
-    }
-    private func resetForm() {
-        form.username = ""
-        form.password = ""
-        errorMessage = nil
     }
 
 }
