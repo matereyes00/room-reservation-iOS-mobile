@@ -5,11 +5,23 @@
 //  Created by Martina Reyes on 5/16/25.
 //
 
+
 struct AddRoom: Codable {
     let roomName: String
     let roomCapacity: Int
     let roomDescription: String
+    let timestamp: Int
+    let nonce: String
 }
+
+struct AddRoom_: Codable {
+    let roomName: String
+    let roomCapacity: Int
+    let roomDescription: String
+    let timestamp: Int
+    let nonce: String
+}
+
 
 struct EditRoom: Codable {
     let roomName: String

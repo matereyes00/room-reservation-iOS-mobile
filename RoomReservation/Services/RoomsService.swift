@@ -16,94 +16,128 @@ class RoomsService {
         return "http://\(ip):3000"
     }()
     
-//    func addRoom(
-//        roomName: String,
-//        roomCapacity: Int,
-//        roomDescription: String)
-//    async throws -> Room {
-//        guard let url = URL(string: "\(baseURL)/rooms/addRoom") else {
-//            throw URLError(.badURL)
-//        }
-//
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "POST"
-//        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//
-//        let body = AddRoom(
-//            roomName: roomName,
-//            roomCapacity: roomCapacity,
-//            roomDescription: roomDescription
-//        )
-//
-//        request.httpBody = try JSONEncoder().encode(body)
-//        // Add auth token if required
-//        if let token = UserDefaults.standard.string(forKey: "accessToken") {
-//            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-//        }
-//
-//        let (data, response) = try await URLSession.shared.data(for: request)
-//
-//        if let httpResponse = response as? HTTPURLResponse {
-//            print("Status Code: \(httpResponse.statusCode)")
-//            print("Response Headers: \(httpResponse.allHeaderFields)")
-//        }
-//
-//        print("Response Body: \(String(data: data, encoding: .utf8) ?? "N/A")")
-//
-//        guard let httpResponse = response as? HTTPURLResponse,
-//              200..<300 ~= httpResponse.statusCode else {
-//            throw URLError(.badServerResponse)
-//        }
-//
-//        let createdRoom = try JSONDecoder().decode(Room.self, from: data)
-//        return createdRoom
-//    }
-
-    func addRoom(
+    func getSignature(
         roomName: String,
         roomCapacity: Int,
         roomDescription: String
     ) async throws -> Room {
-        // call /create-encrypted-payload
-//        guard let url = URL(string: "\(baseURL)/signature-key/create-signature-key") else {
-//            throw URLError(.badURL)
-//        }
-//        print(url)
-        guard let url = URL(string: "\(baseURL)/rooms/addRoom") else {
+        
+        // 1. Prepare the signature request
+        guard let url = URL(string: "\(baseURL)/signature-key/get-signature") else {
             throw URLError(.badURL)
         }
+        
+        let timestamp = Int(Date().timeIntervalSince1970 * 1000) // current time in ms
+        let nonce = UUID().uuidString
 
-        let rawPayload = AddRoom(roomName: roomName, roomCapacity: roomCapacity, roomDescription: roomDescription)
-//
+//        let rawPayload = AddRoom(roomName: roomName, roomCapacity: roomCapacity, roomDescription: roomDescription)
+        // 👇 include timestamp and nonce in payload
+        let rawPayload = AddRoom(
+            roomName: roomName,
+            roomCapacity: roomCapacity,
+            roomDescription: roomDescription,
+            timestamp: timestamp,
+            nonce: nonce
+        )
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//
+
         let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
         request.httpBody = try encoder.encode(rawPayload)
-//
+
         if let token = UserDefaults.standard.string(forKey: "accessToken") {
-            print("✅ Token found: \(token)")
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         } else {
             print("❌ No token found in UserDefaults")
         }
-//
-//        for (key, value) in request.allHTTPHeaderFields ?? [:] {
-//            print("➡️ Header: \(key): \(value)")
-//        }
+
+        // 2. Perform the request
         let (data, response) = try await URLSession.shared.data(for: request)
-        if let responseBody = String(data: data, encoding: .utf8) {
-            print("📩 Response body: \(responseBody)")
-        } else {
-            print("❌ Failed to decode response body")
-        }
-//
-        guard let httpResponse = response as? HTTPURLResponse,
-              200..<300 ~= httpResponse.statusCode else {
+
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        return try JSONDecoder().decode(Room.self, from: data)
+
+        print("🔐 Signature response status: \(httpResponse.statusCode)")
+        if let body = String(data: data, encoding: .utf8) {
+            print("🔐 Signature response body: \(body)")
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+
+        // 3. Decode the signature
+        let signatureResponse = try JSONDecoder().decode(SignatureResponse.self, from: data)
+        print("🖋️ Retrieved Signature: \(signatureResponse.signature)")
+        
+        // 4. Use the signature to add the room
+        let savedRoom = try await addRoom(
+            roomName: roomName,
+            roomCapacity: roomCapacity,
+            roomDescription: roomDescription,
+            signature: signatureResponse.signature,
+            nonce: nonce,
+            timeStamp: timestamp
+        )
+        
+        print("✅ Room successfully added: \(savedRoom)")
+        return savedRoom
+    }
+
+    func addRoom(
+        roomName: String,
+        roomCapacity: Int,
+        roomDescription: String,
+        signature: String,
+        nonce: String,
+        timeStamp: Int
+    ) async throws -> Room {
+        guard let url = URL(string: "\(baseURL)/rooms/addRoom") else {
+            throw URLError(.badURL)
+        }
+
+        let rawPayload = AddRoom_(
+            roomName: roomName,
+            roomCapacity: roomCapacity,
+            roomDescription: roomDescription,
+            timestamp: timeStamp,
+            nonce: nonce
+        )
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+        print("🛡️ Using Signature: \(signature)")
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys  // 👈 makes the JSON field order deterministic
+        request.httpBody = try encoder.encode(rawPayload)
+
+        if let token = UserDefaults.standard.string(forKey: "accessToken") {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        print("🏢 AddRoom response status: \(httpResponse.statusCode)")
+        if let body = String(data: data, encoding: .utf8) {
+            print("🏢 AddRoom response body: \(body)")
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+
+        let addedRoom = try JSONDecoder().decode(Room.self, from: data)
+        return addedRoom
     }
 
     

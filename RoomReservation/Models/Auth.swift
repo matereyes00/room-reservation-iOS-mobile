@@ -6,6 +6,15 @@
 //
 import Foundation
 
+struct SignatureResponse: Codable {
+    let signature: String
+
+    enum CodingKeys: String, CodingKey {
+        case signature = "x-signature"
+    }
+}
+
+
 struct EncryptedRequest: Codable {
     let encryptedPayload: String
     let signature: String

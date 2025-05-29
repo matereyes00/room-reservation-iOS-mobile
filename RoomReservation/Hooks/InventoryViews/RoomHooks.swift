@@ -21,7 +21,9 @@ struct RoomHooks {
                 let room = try await RoomsService.shared.addRoom(
                     roomName: roomName,
                     roomCapacity: roomCapacity,
-                    roomDescription: roomDescription
+                    roomDescription: roomDescription,
+                    nonce: UUID().uuidString,
+                    timeStamp: Int(Date().timeIntervalSince1970)
                 )
                 print("Room \(room.roomName) Added Successfully")
                 DispatchQueue.main.async {
