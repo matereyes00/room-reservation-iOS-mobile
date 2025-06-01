@@ -87,7 +87,7 @@ class AuthService {
         }
         
         let responseString = String(data: data, encoding: .utf8) ?? "<empty>"
-//        print("Response body string:", responseString)
+        print("Response body string:", responseString)
 
         guard
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],

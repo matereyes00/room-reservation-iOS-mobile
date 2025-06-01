@@ -7,3 +7,4 @@
 
 .env
 Secrets.xcconfig
+gcp_credentials.json

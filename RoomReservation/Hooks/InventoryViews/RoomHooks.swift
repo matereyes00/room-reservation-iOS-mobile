@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 
 struct RoomHooks {
+    
+    /// Save a newly added room via the service.
     static func saveAddedRoom(
         roomName: String,
         roomCapacity: Int,
@@ -17,28 +19,36 @@ struct RoomHooks {
         setError: @escaping (String?) -> Void
     ) {
         Task {
-            do{
-                let room = try await RoomsService.shared.addRoom(
+            do {
+                // 🔐 Sign & Add Room in one step
+                let addedRoom = try await RoomsService.shared.getSignature(
                     roomName: roomName,
                     roomCapacity: roomCapacity,
-                    roomDescription: roomDescription,
-                    nonce: UUID().uuidString,
-                    timeStamp: Int(Date().timeIntervalSince1970)
+                    roomDescription: roomDescription
                 )
-                print("Room \(room.roomName) Added Successfully")
+
+                print("✅ Room \(addedRoom.roomName) added successfully.")
                 DispatchQueue.main.async {
-                    dismiss()  // ✅ safe UI update
+                    dismiss()
                 }
+
             } catch {
-                setError("Failed to add room: \(error.localizedDescription)")
+                print("❌ Error while saving room: \(error)")
+                DispatchQueue.main.async {
+                    setError("Failed to add room: \(error.localizedDescription)")
+                }
             }
         }
     }
-    
+
+
+
+    /// Fetch all rooms from the service.
     static func loadRooms() async throws -> [Room] {
         try await RoomsService.shared.fetchRooms()
     }
-    
+
+    /// Save an edited room with new values.
     static func saveEditedRoom(
         room: Room,
         roomName: String,
@@ -65,6 +75,7 @@ struct RoomHooks {
                 DispatchQueue.main.async {
                     dismiss()
                 }
+
             } catch {
                 DispatchQueue.main.async {
                     setError("Failed to update room: \(error.localizedDescription)")
@@ -72,7 +83,8 @@ struct RoomHooks {
             }
         }
     }
-    
+
+    /// Delete a room and return updated room list.
     static func deleteRoom(
         _ room: Room,
         onSuccess: @escaping ([Room]) -> Void,
@@ -83,9 +95,11 @@ struct RoomHooks {
             do {
                 try await RoomsService.shared.deleteRoom(roomId: room.id)
                 let updatedRooms = currentRooms.filter { $0.id != room.id }
+
                 DispatchQueue.main.async {
                     onSuccess(updatedRooms)
                 }
+
             } catch {
                 DispatchQueue.main.async {
                     onError("Failed to delete room: \(error.localizedDescription)")

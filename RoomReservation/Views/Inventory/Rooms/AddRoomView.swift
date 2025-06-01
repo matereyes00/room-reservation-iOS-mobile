@@ -45,7 +45,7 @@ struct AddRoomView: View {
                                 roomCapacity: roomCapacity,
                                 roomDescription: roomDescription,
                                 dismiss: { dismiss() },
-                                setError: { msg in errorMessage = msg }
+                                setError: { msg in errorMessage = msg },
                             )
                     }
                     Button("Cancel") {
